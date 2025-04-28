@@ -12,38 +12,46 @@ const UnitConverter = () => {
     const [toValue, setToValue] = useState("");
 
     useEffect(() => {
-        if (!conversionTypes[activeTab]) {
-            setActiveTab(availableTabs[0]);
-            return;
+        if (conversionTypes[activeTab]) {
+            const units = Object.keys(conversionTypes[activeTab].units);
+
+            if (units.length >= 2) {
+                setFromUnit(units[0]);
+                setToUnit(units[1]);
+            } else if (units.length === 1) {
+                setFromUnit(units[0]);
+                setToUnit(units[0]);
+            } else {
+                setFromUnit("");
+                setToUnit("");
+            }
+
+            setFromValue("1");
         }
-
-        const units = Object.keys(conversionTypes[activeTab].units);
-
-        if (units.length >= 2) {
-            setFromUnit(units[0]);
-            setToUnit(units[1]);
-        } else if (units.length === 1) {
-            setFromUnit(units[0]);
-            setToUnit(units[0]);
-        } else {
-            setFromUnit("");
-            setToUnit("");
-        }
-
-        setFromValue("1");
-        setToValue("");
-    }, [activeTab, availableTabs]);
+    }, [activeTab]);
 
     useEffect(() => {
-        if (fromValue !== "" && fromUnit && toUnit && activeTab) {
-            const result = convert(parseFloat(fromValue), fromUnit, toUnit, activeTab);
-            setToValue(result);
+        if (fromUnit && toUnit && activeTab) {
+            const parsedValue = parseFloat(fromValue);
+
+            if (!isNaN(parsedValue)) {
+                const result = convert(parsedValue, fromUnit, toUnit, activeTab);
+                setToValue(result.toFixed(2));
+            } else {
+                setToValue("");
+            }
         }
     }, [fromValue, fromUnit, toUnit, activeTab]);
 
-    const handleFromValueChange = (e) => setFromValue(e.target.value);
-    const handleFromUnitChange = (e) => setFromUnit(e.target.value);
-    const handleToUnitChange = (e) => setToUnit(e.target.value);
+    const handleFromValueChange = (e) => {
+        setFromValue(e.target.value);
+    };
+    const handleFromUnitChange = (e) => {
+        setFromUnit(e.target.value);
+    };
+    const handleToUnitChange = (e) => {
+        setToUnit(e.target.value);
+    };
 
     return (
         <div className="unit-converter">
@@ -84,7 +92,7 @@ const UnitConverter = () => {
                         <input
                             type="text"
                             value={toValue}
-                            disabled
+                            readOnly
                         />
                         <select value={toUnit} onChange={handleToUnitChange}>
                             {Object.entries(conversionTypes[activeTab].units).map(([unit, data]) => (
